@@ -8,13 +8,30 @@
             background: #0a0a0a; 
             color: #00ff00; 
             padding: 20px; 
-            text-align: center;
         }
         .header { 
+            text-align: center;
             border: 2px solid #00ff00; 
             padding: 20px; 
             margin-bottom: 30px; 
             background: rgba(0, 255, 0, 0.1);
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .widget {
+            border: 1px solid #00ff00;
+            padding: 15px;
+            background: rgba(0, 255, 0, 0.05);
+            border-radius: 5px;
+        }
+        .widget h3 {
+            color: #ffff00;
+            margin-top: 0;
+            text-align: center;
         }
         .scan-button { 
             background: #00ff00; 
@@ -26,14 +43,25 @@
             margin: 10px;
             border-radius: 5px;
             font-weight: bold;
+            display: block;
+            margin: 20px auto;
         }
         .scan-button:hover {
             background: #ffff00;
         }
-        .status {
+        .earthquake-item {
+            border-bottom: 1px solid #333;
+            padding: 10px 0;
+            font-size: 14px;
+        }
+        .magnitude {
+            color: #ff6600;
+            font-weight: bold;
+        }
+        .loading {
             color: #ffff00;
-            font-size: 20px;
-            margin: 20px 0;
+            text-align: center;
+            font-style: italic;
         }
     </style>
 </head>
@@ -41,23 +69,88 @@
     <div class="header">
         <h1>🔍 REVELATION COMPILER v2.0</h1>
         <p>Real-time Divine Event Monitoring System</p>
-        <div class="status">STATUS: ONLINE ✅</div>
+        <div style="color: #ffff00; font-size: 20px;">STATUS: ONLINE ✅</div>
+        
+        <button class="scan-button" onclick="loadAllData()">
+            🚨 SCAN ALL DIVINE EVENTS
+        </button>
     </div>
     
-    <button class="scan-button" onclick="runScan()">
-        🚨 RUN DIVINE MONITORING SCAN
-    </button>
-    
-    <div id="results" style="margin-top: 30px; display: none;">
-        <h3>🔍 Scanning Reddit for Divine Patterns...</h3>
-        <p>Monitoring consciousness shifts across the field...</p>
+    <div class="dashboard">
+        <div class="widget">
+            <h3>🌍 EARTHQUAKE MONITORING</h3>
+            <div>Last Updated: <span id="earthquake-time">Never</span></div>
+            <div id="earthquake-data" class="loading">Click scan to load earthquake data...</div>
+        </div>
+        
+        <div class="widget">
+            <h3>📱 SOCIAL CONSCIOUSNESS</h3>
+            <div id="social-data" class="loading">Social monitoring coming soon...</div>
+        </div>
+        
+        <div class="widget">
+            <h3>🌊 OCEAN & WEATHER</h3>
+            <div id="weather-data" class="loading">Weather monitoring coming soon...</div>
+        </div>
+        
+        <div class="widget">
+            <h3>⭐ SPACE WEATHER</h3>
+            <div id="space-data" class="loading">Space weather monitoring coming soon...</div>
+        </div>
     </div>
 
     <script>
-        function runScan() {
-            document.getElementById('results').style.display = 'block';
-            alert('🚨 DIVINE MONITORING SCAN INITIATED!\n\n✅ Scanning Reddit consciousness patterns\n✅ Detecting synchronicity clusters\n✅ Monitoring awakening events\n\n📊 Results will appear below...');
+        async function loadEarthquakeData() {
+            try {
+                document.getElementById('earthquake-data').innerHTML = '<div class="loading">🔄 Loading earthquake data...</div>';
+                
+                // USGS real-time earthquake API - significant earthquakes in last 24 hours
+                const response = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_day.geojson');
+                const data = await response.json();
+                
+                document.getElementById('earthquake-time').textContent = new Date().toLocaleTimeString();
+                
+                if (data.features.length === 0) {
+                    document.getElementById('earthquake-data').innerHTML = '✅ No significant earthquakes in last 24 hours';
+                    return;
+                }
+                
+                let html = `<div>📊 ${data.features.length} significant earthquakes detected:</div>`;
+                
+                data.features.forEach(quake => {
+                    const props = quake.properties;
+                    const coords = quake.geometry.coordinates;
+                    const time = new Date(props.time).toLocaleString();
+                    
+                    html += `
+                        <div class="earthquake-item">
+                            <div class="magnitude">Magnitude ${props.mag}</div>
+                            <div>${props.place}</div>
+                            <div>Time: ${time}</div>
+                            <div>Depth: ${coords[2]}km</div>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('earthquake-data').innerHTML = html;
+                
+            } catch (error) {
+                document.getElementById('earthquake-data').innerHTML = '❌ Error loading earthquake data';
+                console.error('Earthquake API error:', error);
+            }
         }
+        
+        async function loadAllData() {
+            await loadEarthquakeData();
+            
+            // Placeholder for future data sources
+            document.getElementById('social-data').innerHTML = '🔄 Social monitoring module loading...';
+            document.getElementById('weather-data').innerHTML = '🔄 Weather monitoring module loading...';
+            document.getElementById('space-data').innerHTML = '🔄 Space weather module loading...';
+        }
+        
+        // Auto-refresh earthquake data every 5 minutes
+        setInterval(loadEarthquakeData, 5 * 60 * 1000);
     </script>
 </body>
 </html>
